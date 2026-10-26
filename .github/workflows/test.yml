@@ -1,0 +1,16 @@
+name: test
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check every hook
+        run: |
+          for f in hooks/*.sh test.sh; do bash -n "$f"; done
+          python3 -m py_compile hooks/render-all-pages.py
+          node --check hooks/precompact-transcript.js
+      - name: Smoke test
+        run: bash test.sh

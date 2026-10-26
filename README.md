@@ -1,8 +1,19 @@
 # ai-agent-guardrails
 
+[![test](https://github.com/cadi27tech/ai-agent-guardrails/actions/workflows/test.yml/badge.svg)](https://github.com/cadi27tech/ai-agent-guardrails/actions/workflows/test.yml)
+
 Claude Code hooks that turn "the agent said it did X" into "the harness checked X". Each one exists because something went wrong in real work with AI coding agents, and the comment at the top of every script records what.
 
 The design rule behind all of them: **a guard that cannot read its input must fail loud, not wave the call through.** A blocking hook that silently exits 0 is worse than no hook, because it looks like enforcement.
+
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/architecture-m.svg">
+  <img src="docs/architecture.svg" alt="System drawing: an AI coding agent proposes a tool call; PreToolUse guards check it and block what they cannot verify; the tool runs; a PostToolUse log records every image really shown. On context compaction, PreCompact freezes git state and SessionStart replays it.">
+</picture>
+
+What it looks like when it works: the smoke test, then two calls an agent really tried, blocked with the reason and the way forward.
+
+<img src="docs/terminal.svg" alt="bash test.sh: 7 of 7 ok. A write containing an em-dash is blocked with exit 2. A pdftotext call on a PDF nobody has looked at is blocked with exit 2 and told to render every page first.">
 
 ## The hooks
 
@@ -43,7 +54,7 @@ The design rule behind all of them: **a guard that cannot read its input must fa
 1. Copy `hooks/` to `~/.claude/hooks/` (or `$CLAUDE_CONFIG_DIR/hooks/`).
 2. Merge the `hooks` block from `settings.example.json` into `~/.claude/settings.json`. Fix the `image-size-guard.ps1` path, or drop it on macOS/Linux.
 3. Requirements: bash, Python 3 (PyMuPDF for `render-all-pages.py`), Node for the compaction parser, `gh` for the push guard. `precompact-state.sh` and `session-start-context.sh` read `.remember/` files when a project keeps them and skip them otherwise.
-4. Run `bash test.sh`. Every line should read `ok`.
+4. Run `bash test.sh`. Every line should read `ok`. CI runs the same test, plus a syntax check of every hook, on each push.
 
 Edit the phrase list in `first-person-voice-warn.sh` to suit your own writing. It is a warning, not a block, because technical prose uses "I" and "we" legitimately.
 
